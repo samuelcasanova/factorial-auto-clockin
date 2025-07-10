@@ -8,10 +8,13 @@ import { defineConfig, devices } from '@playwright/test';
 // import path from 'path';
 // dotenv.config({ path: path.resolve(__dirname, '.env') });
 
+const fiveMinutesInMillis = 5 * 60 * 1000
+
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
+  timeout: fiveMinutesInMillis,
   testDir: './test',
   /* Run tests in files in parallel */
   fullyParallel: true,
