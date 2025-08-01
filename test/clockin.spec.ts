@@ -6,6 +6,15 @@ test('Auto-clockin', async ({ page }) => {
   await authenticateWithGoogle(page)
 
   await navigateToClockinPage(page)
+  await expandAllClockins(page)
+
+  while (await arePendingClockins(page)) {
+    await completeNextPendingClockin(page)
+    await waitUntilTheCurrentPopupIsClosed(page)
+  }
+
+  await navigateToPreviousMonth(page)
+  await expandAllClockins(page)
 
   while (await arePendingClockins(page)) {
     await completeNextPendingClockin(page)
@@ -42,11 +51,19 @@ async function navigateToClockinPage (page: Page): Promise<void> {
   await page.getByText('Immfly Group').isVisible({ timeout: 10000 })
   await page.getByText('Immfly Group').click()
   await page.getByText('Fichaje').click()
+}
+
+async function expandAllClockins (page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Expandir todo' }).click()
 }
 
+async function navigateToPreviousMonth (page: Page): Promise<void> {
+  await page.locator('//section/div/div/div/div[2]/div/div/div').first().click()
+}
+
 async function arePendingClockins (page: Page): Promise<boolean> {
-  return await page.getByTitle('-8h 07m').first().isVisible({ timeout: 5000 })
+  const locator = page.getByTitle('-8h 07m').first()
+  return await waitForALocatorToBeVisible(locator, 10000)
 }
 
 async function completeNextPendingClockin (page: Page): Promise<void> {
@@ -55,7 +72,9 @@ async function completeNextPendingClockin (page: Page): Promise<void> {
   await page.locator('//*[@data-radix-popper-content-wrapper]//input[@placeholder=\'--:--\']').first().fill('09:00')
   await page.locator('//*[@data-radix-popper-content-wrapper]//input[@placeholder=\'--:--\']').nth(1).click()
   await page.locator('//*[@data-radix-popper-content-wrapper]//input[@placeholder=\'--:--\']').nth(1).fill('17:07')
-  await page.locator('//*[@data-radix-popper-content-wrapper]//select').selectOption({ label: 'Casa' })
+  if (await page.locator('//*[@data-radix-popper-content-wrapper]//select').isVisible({ timeout: 2000 })) {
+    await page.locator('//*[@data-radix-popper-content-wrapper]//select').selectOption({ label: 'Casa' })
+  }
   await page.locator('//*[@data-radix-popper-content-wrapper]//button/span[text() = \'Aplicar\']').click()
 }
 
